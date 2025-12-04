@@ -1,76 +1,96 @@
-My First ERC-20 Token (MTK)
-This repository contains a complete implementation of a basic ERC-20 token written in Solidity and deployed using Remix IDE.
-The purpose of this project is to understand the fundamentals of how Ethereum tokens work under the ERC-20 standard, including balances, transfers, approvals, and allowances.
+# MyToken (MTK) — ERC-20 Cryptocurrency Token
 
-🪙 What This Project Is
-This project implements a standard ERC-20 token named MyToken (MTK) with:
+## 📌 Overview
+MyToken (MTK) is a simple and fully functional ERC-20 token built on the Ethereum blockchain using Solidity and Remix IDE.  
+This project demonstrates the fundamentals of cryptocurrency development and token standards used by thousands of tokens such as USDT, LINK, and UNI.
 
-A fixed total supply minted during deployment
-18 decimal precision
-Support for transfer, approve, and transferFrom
-ERC-20 required events (Transfer and Approval)
-Basic internal checks such as preventing zero-address transfers and enforcing balance/allowance limits
-This token follows the official ERC-20 interface and can be interacted with using any Ethereum-compatible wallet or tool.
+This token allows:
+- Holding & transferring digital assets
+- Checking token balances
+- Approving third-party addresses to spend tokens
+- Executing transfers on behalf of the owner (allowance mechanism)
 
-⚙️ How It Works
-The ERC-20 token standard defines a common set of functions that allow:
+---
 
-Tracking balances
-Transferring tokens between accounts
-Allowing another address to spend tokens on your behalf
-Emitting events that external tools can read (wallets, explorers, dApps)
-Internally, the smart contract manages:
+## 🎯 Project Objective
+To create and deploy the first cryptocurrency token using the ERC-20 standard while learning the basics of smart contracts, blockchain interactions, and token economics.
 
-A ledger stored using mapping(address => uint256)
-An allowance table stored using mapping(address => mapping(address => uint256))
-A total supply that is assigned to the deployer
-Basic safety checks through require statements
-When a function like transfer() or transferFrom() is executed, the contract updates the stored balances and emits events so external systems can react to those changes.
+---
 
-📜 Solidity Contract
+## 🔧 Technology Used
+| Component | Details |
+|----------|---------|
+| Programming Language | Solidity (v0.8.x) |
+| IDE | Remix IDE |
+| Blockchain | Ethereum (JavaScript VM for testing) |
+| Standard | ERC-20 Token Standard |
+
+---
+
+## 📍 Token Details
+
+| Property | Value |
+|---------|------|
+| **Name** | MyToken |
+| **Symbol** | MTK |
+| **Decimals** | 18 |
+| **Total Supply** | 1,000,000 MTK (Minted on deployment to owner) |
+
+---
+
+## 🚀 Features Implemented (ERC-20 Core)
+
+| Feature | Status |
+|--------|:-----:|
+| Token Metadata | ✔️ |
+| balanceOf | ✔️ |
+| transfer | ✔️ |
+| approve | ✔️ |
+| allowance | ✔️ |
+| transferFrom | ✔️ |
+| Transfer Event | ✔️ |
+| Approval Event | ✔️ |
+| Balance & allowance validation | ✔️ |
+
+---
+
+## 🧠 Smart Contract Code (Solidity)
+
+```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract MyToken {
-    // Token Metadata
     string public name = "MyToken";
     string public symbol = "MTK";
     uint8 public decimals = 18;
-
     uint256 public totalSupply;
 
-    // Balances for each user
-    mapping(address => uint256) public balances;
-
-    // Allowances: owner => (spender => amount)
+    mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    // Events (required by ERC-20)
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     constructor(uint256 _initialSupply) {
         totalSupply = _initialSupply;
-        balances[msg.sender] = _initialSupply;
+        balanceOf[msg.sender] = _initialSupply;
+        emit Transfer(address(0), msg.sender, _initialSupply);
     }
 
-    function balanceOf(address _owner) public view returns (uint256) {
-        return balances[_owner];
-    }
+    function transfer(address _to, uint256 _value) public returns (bool success) {
+        require(_to != address(0), "Cannot transfer to zero address");
+        require(balanceOf[msg.sender] >= _value, "Insufficient balance");
 
-    function transfer(address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0), "Invalid address");
-        require(balances[msg.sender] >= _value, "Insufficient balance");
-
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
+        balanceOf[msg.sender] -= _value;
+        balanceOf[_to] += _value;
 
         emit Transfer(msg.sender, _to, _value);
         return true;
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool) {
-        require(_spender != address(0), "Invalid spender");
+    function approve(address _spender, uint256 _value) public returns (bool success) {
+        require(_spender != address(0), "Cannot approve zero address");
 
         allowance[msg.sender][_spender] = _value;
 
@@ -78,63 +98,16 @@ contract MyToken {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0), "Invalid address");
-        require(balances[_from] >= _value, "Insufficient balance");
-        require(allowance[_from][msg.sender] >= _value, "Allowance too low");
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+        require(_to != address(0), "Cannot transfer to zero address");
+        require(balanceOf[_from] >= _value, "Insufficient balance");
+        require(allowance[_from][msg.sender] >= _value, "Insufficient allowance");
 
-        balances[_from] -= __value;
-        balances[_to] += __value;
-        allowance[_from][msg.sender] -= __value;
+        balanceOf[_from] -= _value;
+        balanceOf[_to] += _value;
+        allowance[_from][msg.sender] -= _value;
 
         emit Transfer(_from, _to, _value);
         return true;
     }
 }
-🚀 How To Deploy and Test (Remix)
-Open Remix IDE: https://remix.ethereum.org
-
-Create a file named MyToken.sol
-
-Paste the contract code
-
-Compile with Solidity 0.8.x
-
-Go to Deploy & Run Transactions
-
-Choose Remix VM (Prague)
-
-Enter the initial supply (for 1,000,000 tokens with 18 decimals):
-
-1000000000000000000000000
-Click Deploy
-
-Interact with the functions:
-
-name, symbol, decimals, totalSupply
-balanceOf
-transfer
-approve
-transferFrom
-🧪 Screenshots Included
-Screenshots are placed inside the /screenshots folder:
-
-Compilation success
-Contract deployment
-Token metadata checks
-Transfer transaction + event log
-Approval + transferFrom logs
-Edge-case failures (zero-address and over-balance transfers)
-📘 What I Learned
-While building this token, I learned:
-
-How the ERC-20 standard is structured
-How balances and allowances are stored using mappings
-How events make smart contracts observable from the outside
-How Remix VM simulates a blockchain for local testing
-Why transfers fail for invalid operations (zero address, insufficient balance, low allowance)
-How each function modifies the internal state of a smart contract
-This project helped me understand the foundational mechanics behind most Ethereum-based tokens.
-
-📧 Contact
-Feel free to explore or fork the project.
